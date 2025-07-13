@@ -137,7 +137,7 @@ const AUDIO_DETAIL = [
 
 
 const HITBOX = {
-	headpat: { xMin: 800, xMax: 1460, yMin: -100, yMax: 420 },
+	headpat: { xMin: 800, xMax: 1460, yMin: -20, yMax: 420 },
 	voiceline: { xMin: 820, xMax: 1700, yMin: 840, yMax: 1800 }
 };
 
@@ -150,7 +150,7 @@ const EYE_STEP = 10;
 
 let mousePos = { x: 0, y: 0 };
 let volume = 0.5;
-let mouseOptions = { voicelines: true, headpatting: true, mousetracking: true };
+let mouseOptions = { voicelines: true, headpatting: true, mousetracking: true, drawHitboxes: false };
 
 // Helper clamp function. Math does not appear to have clamp() in this version.
 function clamp(num, min, max) {
@@ -282,6 +282,42 @@ function pressedMouse(x, y) {
 	}
 }
 
+function drawHitboxes() {
+	if (!overlay || !overlay.getContext) return;
+	const ctx = overlay.getContext('2d');
+	if (!ctx) return;
+
+	ctx.clearRect(0, 0, overlay.width, overlay.height);
+	if (!mouseOptions.drawHitboxes) return;
+
+	
+	ctx.save();
+	ctx.lineWidth = 2;
+	ctx.strokeStyle = 'red';
+	ctx.globalAlpha = 0.5;
+
+	function worldToScreen(n, side) {
+		let d = { x: { length: 2560, mid: (canvas.width / 2) }, y: { length: 1600, mid: (canvas.height / 2) } };
+		n = (n / transpose) - (d[side].length / (transpose * 2));
+		n = n * customScale + (d[side].length / (transpose * 2));
+		n = (d[side].length / (transpose * 2)) - n;
+		return d[side].mid - n;
+	}
+
+	for (const key in HITBOX) {
+		const box = HITBOX[key];
+		const x1 = worldToScreen(box.xMin, 'x');
+		const y1 = worldToScreen(box.yMin, 'y');
+		const x2 = worldToScreen(box.xMax, 'x');
+		const y2 = worldToScreen(box.yMax, 'y');
+		const width = x2 - x1;
+		const height = y1 - y2;
+		ctx.strokeRect(x1, y2, width, height);
+	}
+
+	ctx.restore();
+}
+
 function movedMouse(x, y, deltaX, deltaY) {
 	switch (mouseSelect) {
 		case 1:
@@ -375,6 +411,7 @@ function init() {
 			if (props.showdialog) dialogBox = props.showdialog.value;
 			if (props.dialogx) textbox.style.left = props.dialogx.value + '%';
 			if (props.dialogy) textbox.style.top = props.dialogy.value + '%';
+			if (props.drawHitboxes) mouseOptions.drawHitboxes = props.drawHitboxes.value;
 
 			// 新增：监听语言选择
 			if (props.dialoglanguage) {
@@ -403,6 +440,10 @@ function init() {
 	canvas = document.getElementById('canvas');
 	canvas.width = window.innerWidth;
 	canvas.height = window.innerHeight;
+
+	overlay = document.getElementById('overlay');
+	overlay.width = window.innerWidth;
+	overlay.height = window.innerHeight;
 
 	let config = { alpha: false, premultipliedAlpha: false };
 	gl = canvas.getContext('webgl', config) || canvas.getContext('experimental-webgl', config);
@@ -574,6 +615,8 @@ function render() {
 	let elapsed = Date.now() / 1000 - now;
 	let targetFrameTime = 1 / targetFps;
 	let delay = Math.max(targetFrameTime - elapsed, 0) * 1000;
+
+	drawHitboxes();
 
 	setTimeout(() => {
 		requestAnimationFrame(render);
