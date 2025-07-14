@@ -149,7 +149,7 @@
 				"fraction" : true,
 				"index" : 0,
 				"max" : 2,
-				"min" : 0.76,
+				"min" : 0.7,
 				"order" : 100,
 				"precision" : 3,
 				"step" : 0.01,
@@ -217,7 +217,7 @@
 	"tags" : [ "Anime" ],
 	"title" : "Blue Archive | Aomori Mine (Idol)",
 	"type" : "Web",
-	"version" : 5,
+	"version" : 6,
 	"visibility" : "public",
 	"workshopid" : "3505840114",
 	"workshopurl" : "steam://url/CommunityFilePage/3505840114"
